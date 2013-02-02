@@ -31,9 +31,10 @@
 
 (* Declare your aliases (let foo = regex) and rules here. *)
 
+let num = [0-9]+
 
 rule token = parse
   | eof { EOF }
   | 'X' { X (lex_range lexbuf) }
-
+  | num { INT (Int32.of_string) }
   | _ as c { unexpected_char lexbuf c }
