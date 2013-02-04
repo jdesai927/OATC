@@ -31,7 +31,7 @@
 
 (* Declare your aliases (let foo = regex) and rules here. *)
 
-let num = '-'?['0'-'9']+
+let num = ['0'-'9']+
 let whitespace = ['\t' ' ' '\r' '\n']
 
 
