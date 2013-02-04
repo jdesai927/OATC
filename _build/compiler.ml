@@ -28,4 +28,4 @@ let parse (filename : string) (buf : Lexing.lexbuf) : exp =
    Follows cdecl calling conventions and platform-specific name mangling policy. *)
 let compile_exp (ast:exp) : Cunit.cunit =
   let block_name = (Platform.decorate_cdecl "program") in
-  failwith "fuck this"
+failwith "unimplemented"
