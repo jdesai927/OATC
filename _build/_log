@@ -92,5 +92,5 @@
 # Target: main.cmx, tags: { compile, extension:cmx, extension:ml, file:main.cmx, file:main.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt.opt -c -o main.cmx main.ml # cached
 # Target: main.native, tags: { dont_link_with, extension:native, file:main.native, link, native, ocaml, program, quiet }
-/usr/bin/ocamlopt.opt unix.cmxa str.cmxa assert.cmx ast.cmx x86.cmx cunit.cmx range.cmx parser.cmx lexer.cmx platform.cmx compiler.cmx gradedtests.cmx providedtests.cmx main.cmx -o main.native
+/usr/bin/ocamlopt.opt unix.cmxa str.cmxa assert.cmx ast.cmx x86.cmx cunit.cmx range.cmx parser.cmx lexer.cmx platform.cmx compiler.cmx gradedtests.cmx providedtests.cmx main.cmx -o main.native # cached
 # Compilation successful.

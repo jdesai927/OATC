@@ -5,7 +5,7 @@
 
 open Printf
 open Ast
-open X86   (* Note that Ast has similarly named constructors that must be 
+(*open X86*)   (* Note that Ast has similarly named constructors that must be 
               disambiguated.  For example: Ast.Shl vs. X86.Shl *)
 
 (* Parse an AST from a preexisting lexbuf. 
@@ -28,4 +28,12 @@ let parse (filename : string) (buf : Lexing.lexbuf) : exp =
    Follows cdecl calling conventions and platform-specific name mangling policy. *)
 let compile_exp (ast:exp) : Cunit.cunit =
   let block_name = (Platform.decorate_cdecl "program") in
-  failwith "fuck this"
+  let rec emit_exp e s =
+    begin match e with
+      | Cint i          -> []
+      | Arg             -> []
+      | Binop (b, x, y) -> []
+      | Unop (u, x)     -> []
+    end
+  in
+  [Cunit.Code (X86.mk_block block_name (List.rev (emit_exp ast [])))]
