@@ -26,6 +26,8 @@ let parse (filename : string) (buf : Lexing.lexbuf) : Ast.exp =
    Follows cdecl calling conventions and platform-specific name mangling policy. *)
 let compile_exp (ast:Ast.exp) : Cunit.cunit =
   let block_name = Platform.decorate_cdecl "program" in
+  let cmp_op a cs insns = 
+    Push eax :: And (eax, Imm 1l) :: Setb (eax, cs) :: Cmp (eax, a) :: insns in
   let get_bop b insns =
     let st b = Push eax :: b :: insns in
     begin match b with
@@ -37,13 +39,18 @@ let compile_exp (ast:Ast.exp) : Cunit.cunit =
       | Ast.Shl   -> st (Shl (eax, ecx))
       | Ast.Sar   -> st (Sar (eax, ecx))
       | Ast.Shr   -> st (Shr (eax, ecx))
-      | _         -> failwith "gtfo"
+      | Ast.Eq    -> cmp_op ecx Eq insns
+      | Ast.Neq   -> cmp_op ecx NotEq insns
+      | Ast.Lt    -> cmp_op ecx Slt insns
+      | Ast.Lte   -> cmp_op ecx Sle insns
+      | Ast.Gt    -> cmp_op ecx Sgt insns
+      | Ast.Gte   -> cmp_op ecx Sge insns
     end in
   let get_un o insns =
     let un u = Push eax :: u :: insns in
     begin match o with
       | Ast.Neg    -> un (Neg eax)
-      | Ast.Lognot -> failwith "fuck lognot"
+      | Ast.Lognot -> cmp_op (Imm 0l) Eq insns 
       | Ast.Not    -> un (Not eax)
     end in
   let rec emit_exp e insns =
