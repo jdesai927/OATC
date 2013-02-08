@@ -1,10 +1,11 @@
 =======
 Team Members:
-  <pennkey>	<name>		<email>
+  jdesai, Jinesh Desai (jdesai@seas.upenn.edu)
+  tmandel, Tayler Mandel (tmandel@sas.upenn.edu)
 
 
 Known issues with your implementation:
-
+None.
 
 
 ------------------------
@@ -12,19 +13,22 @@ Course Project Feedback:
 ------------------------
 
 1.  How much time did it take to complete this project?
-
+~2 hours.
 
 2. How effective was this project? [0-10]: 
+6
 
     0 = learned nothing
    10 = highly educational
 
 3. How engaging was this project? [0-10]:
+7
 
     0 = tedious and boring
    10 = fun and engaging
 
 4. How difficult was this project? [0-10]:
+3
 
     0 = piece of cake
    10 = extremely hard
