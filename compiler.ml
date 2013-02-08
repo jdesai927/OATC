@@ -4,6 +4,9 @@
 (******************************************************************************)
 
 open Printf
+open Platform
+open List
+open Cunit
 open X86   (* Note that Ast has similarly named constructors that must be 
               disambiguated.  For example: Ast.Shl vs. X86.Shl *)
 
@@ -24,43 +27,34 @@ let parse (filename : string) (buf : Lexing.lexbuf) : Ast.exp =
    int program(int X) { return <expression>; }
 
    Follows cdecl calling conventions and platform-specific name mangling policy. *)
-let compile_exp (ast:Ast.exp) : Cunit.cunit =
-  let block_name = Platform.decorate_cdecl "program" in
-  let cmp_op a cs insns = 
-    Push eax :: And (eax, Imm 1l) :: Setb (eax, cs) :: Cmp (eax, a) :: insns in
-  let get_bop b insns =
-    let st b = Push eax :: b :: insns in
-    begin match b with
-      | Ast.Plus  -> st (Add (eax, ecx))
-      | Ast.Times -> st (Imul (Eax, ecx))
-      | Ast.Minus -> st (Sub (eax, ecx))
-      | Ast.And   -> st (And (eax, ecx))
-      | Ast.Or    -> st (Or (eax, ecx))
-      | Ast.Shl   -> st (Shl (eax, ecx))
-      | Ast.Sar   -> st (Sar (eax, ecx))
-      | Ast.Shr   -> st (Shr (eax, ecx))
+let compile_exp (ast:Ast.exp) : cunit =
+  let cmp_op a c i = [And (eax, Imm 1l); Setb (eax, c); Cmp (eax, a)] @ i in
+  let bop b insns =
+    Push eax :: match b with
+      | Ast.Plus  -> Add (eax, ecx) :: insns
+      | Ast.Times -> Imul (Eax, ecx) :: insns
+      | Ast.Minus -> Sub (eax, ecx) :: insns
+      | Ast.And   -> And (eax, ecx) :: insns
+      | Ast.Or    -> Or (eax, ecx) :: insns
+      | Ast.Shl   -> Shl (eax, ecx) :: insns
+      | Ast.Sar   -> Sar (eax, ecx) :: insns
+      | Ast.Shr   -> Shr (eax, ecx) :: insns
       | Ast.Eq    -> cmp_op ecx Eq insns
       | Ast.Neq   -> cmp_op ecx NotEq insns
       | Ast.Lt    -> cmp_op ecx Slt insns
       | Ast.Lte   -> cmp_op ecx Sle insns
       | Ast.Gt    -> cmp_op ecx Sgt insns
-      | Ast.Gte   -> cmp_op ecx Sge insns
-    end in
-  let get_un o insns =
-    let un u = Push eax :: u :: insns in
-    begin match o with
-      | Ast.Neg    -> un (Neg eax)
-      | Ast.Lognot -> cmp_op (Imm 0l) Eq insns 
-      | Ast.Not    -> un (Not eax)
-    end in
-  let rec emit_exp e insns =
-    begin match e with
-      | Ast.Binop (bop, e1, e2) ->
-        get_bop bop (Pop ecx :: Pop eax :: (emit_exp e1 (emit_exp e2 insns)))
-      | Ast.Unop (op, ex)      -> get_un op (Pop eax :: emit_exp ex insns)
-      | Ast.Arg             -> Push edx :: insns
-      | Ast.Cint i          -> Push (Imm i) :: insns
-    end in
-  let insns = Mov (edx, stack_offset 4l) :: 
-              List.rev (Ret :: Pop eax :: emit_exp ast []) in
-  [Cunit.Code { global = true; label = mk_lbl_named block_name; insns = insns; }]
+      | Ast.Gte   -> cmp_op ecx Sge insns in
+  let uop o insns =
+    Push eax :: match o with
+      | Ast.Neg    -> Neg eax :: insns
+      | Ast.Not    -> Not eax :: insns
+      | Ast.Lognot -> cmp_op (Imm 0l) Eq insns in
+  let rec conv e is =
+    match e with
+      | Ast.Binop (f, a, b) -> bop f ([Pop ecx; Pop eax] @ (conv a (conv b is)))
+      | Ast.Unop (f, a)     -> uop f (Pop eax :: conv a is)
+      | Ast.Arg             -> Push edx :: is
+      | Ast.Cint i          -> Push (Imm i) :: is in
+  [Code {global = true; label = mk_lbl_named (decorate_cdecl "program"); 
+         insns = Mov (edx, stack_offset 4l) :: rev ([Ret; Pop eax] @ conv ast [])}]
